@@ -939,6 +939,7 @@ function contextSnapshotFromPack(runId: string, pack: ContributorDecisionPack, d
       source: pack.source,
       selectedRepos: decisions.map((decision) => decision.repoFullName),
       actionPortfolio: scopedActionPortfolio(pack.actionPortfolio, decisions) as unknown as JsonValue,
+      counterfactualReasons: scopedCounterfactualReasons(decisions) as unknown as JsonValue,
       evidenceGraph: (pack.evidenceGraph
         ? {
             version: pack.evidenceGraph.version,
@@ -952,6 +953,16 @@ function contextSnapshotFromPack(runId: string, pack: ContributorDecisionPack, d
       openPrMonitor: (pack.openPrMonitor ?? null) as unknown as JsonValue,
     },
   };
+}
+
+function scopedCounterfactualReasons(decisions: RepoDecision[]): Array<{ repoFullName: string; recommendation: RepoDecision["recommendation"]; rejectedAlternatives: NonNullable<RepoDecision["counterfactualReasons"]> }> {
+  return decisions
+    .map((decision) => ({
+      repoFullName: decision.repoFullName,
+      recommendation: decision.recommendation,
+      rejectedAlternatives: (decision.counterfactualReasons ?? []).slice(0, 5),
+    }))
+    .filter((entry) => entry.rejectedAlternatives.length > 0);
 }
 
 function scopedActionPortfolio(portfolio: ActionPortfolio | undefined, decisions: RepoDecision[]): ActionPortfolio | null {
@@ -1060,6 +1071,7 @@ export const __agentOrchestratorInternals = {
   actionFromRepoDecision,
   actionRecord,
   contextSnapshotFromPack,
+  scopedCounterfactualReasons,
   scopedActionPortfolio,
   buildRunRecord,
   mapDecisionAction,
