@@ -29,6 +29,12 @@ describe("isPublicSafeText (#542 shared public/private boundary)", () => {
     }
   });
 
+  it("rejects plural economic / identity signals (the closing \\b must not let the 's' slip past a bare term)", () => {
+    for (const text of ["your wallets here", "hotkeys", "coldkeys", "mnemonics", "payouts", "rankings"]) {
+      expect(isPublicSafeText(text)).toBe(false);
+    }
+  });
+
   it("rejects local filesystem paths (posix and Windows)", () => {
     expect(isPublicSafeText("/Users/alice/project")).toBe(false);
     expect(isPublicSafeText("/home/bob/repo")).toBe(false);
